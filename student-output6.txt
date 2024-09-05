@@ -1,1 +1,1 @@
-Incorrect. 36 = 1
+Invalid input format.

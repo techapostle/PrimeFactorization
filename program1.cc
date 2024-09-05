@@ -75,6 +75,8 @@ int main() {
     return 0;
   }
 
+  // No need for an early check of '*' or '?', as the prime-exponent pairs will be validated while parsing.
+
   // Factorize and compare with the given number
   bool correct = factorizeAndCompare(number, sign);
   char questionMark;
@@ -82,21 +84,32 @@ int main() {
 
   // Output the result with appropriate formatting
   if (correct && questionMark == '?') {
-    cout << "Correct!" << endl;
-  } else {
-    cout << "Incorrect. " << number << " = " << (number < 0 ? "-1" : "1");  // Fix missing prime factorization output
+    cout << "Correct!" << endl;  // Print "Correct!" if the factorization matches
+  } else if (questionMark == '?') {
+    cout << "Incorrect. " << number << " = " << (sign < 0 ? "-1" : "1");
 
     // Re-read and output the prime factorization
     int prime, exponent;
+    bool firstFactor = true;
+
     while (cin.peek() != '?') {  // Continue until we encounter the '?' character again
       if (!parsePrimeExponent(prime, exponent)) {
         break;
       }
 
-      cout << " * " << prime << "^" << exponent;  // Print the prime-exponent pair
+      if (!firstFactor) {
+        cout << " * ";  // Print " * " between factors
+      } else {
+        cout << " * ";  // Print the first " * " after the sign
+        firstFactor = false;
+      }
+
+      cout << prime << "^" << exponent;  // Print the prime-exponent pair
     }
 
     cout << endl;
+  } else {
+    cout << "Invalid input format." << endl;
   }
 
   return 0;

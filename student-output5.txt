@@ -1,1 +1,1 @@
-Incorrect. 50 = 1
+Invalid input format.
