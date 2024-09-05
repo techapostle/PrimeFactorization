@@ -1,69 +1,7 @@
 #include <iostream>
-
 using std::cin;
 using std::cout;
 using std::endl;
-
-// Protype for helper functions
-bool isPrime(int n);
-void skipSpaces(const char input[], int &pos);
-bool parseInput(const char input[], int &integer, int &sign, int primes[], int exponents[], int &count);
-void factorize(int number, int primes[], int exponents[], int &count);
-void sortPrimesAndExponents(int primes[], int exponents[], int count);
-
-// Main function
-int main() {
-  char input[256];
-  cin.getline(input, 256); // Read the entire input as a C-style string
-
-  int number, sign, userPrimes[10], userExponents[10], count = 0;
-
-  if (!parseInput(input, number, sign, userPrimes, userExponents, count)) {
-    cout << "Invalid input format." << endl;
-    return 0;
-  }
-
-  // Sort the user primes and exponents for correct comparison
-  sortPrimesAndExponents(userPrimes, userExponents, count);
-
-  // Calculate the correct prime factorization of the number
-  int correctPrimes[10], correctExponents[10], correctCount = 0;
-  factorize(number, correctPrimes, correctExponents, correctCount);
-
-  // Sort the correct primes and exponents for correct comparison
-  sortPrimesAndExponents(correctPrimes, correctExponents, correctCount);
-
-  // Compare the input prime factorization with the correct one
-  bool correct = true;
-  if (count != correctCount) {
-    correct = false;
-  } else {
-    for (int i = 0; i < count; i++) {
-      if (userPrimes[i] != correctPrimes[i] || userExponents[i] != correctExponents[i]) {
-        correct = false;
-        break;
-      }
-    }
-  }
-
-  // Output the result
-  if (correct) {
-    cout << "Correct!" << endl;
-  } else {
-    cout << "Incorrect. " << number << " = ";
-
-    // Adjust the output to correctly show -1 or 1 depending on the sign
-    cout << (number < 0 ? "-1" : "1");
-
-    // Output the prime factorization
-    for (int i = 0; i < correctCount; i++) {
-      cout << " * " << correctPrimes[i] << "^" << correctExponents[i];
-    }
-    cout << endl;
-  }
-
-  return 0;
-}
 
 // Helper function to check if a number is prime
 bool isPrime(int n) {
@@ -74,158 +12,92 @@ bool isPrime(int n) {
   return true;
 }
 
-// Function to skip spaces
-void skipSpaces(const char input[], int &pos) {
-  while (input[pos] == ' ') {
-    pos++;
-  }
+// Function to parse an integer from the input and return it
+int parseInteger() {
+  int num;
+  cin >> num;
+  return num;
 }
 
-// Function to parse the user input manually using a C-style string
-bool parseInput(const char input[], int &integer, int &sign, int primes[], int exponents[], int &count) {
-  int pos = 0;
-  bool valid = true;
+// Function to parse a prime-exponent pair and return the prime and exponent
+bool parsePrimeExponent(int& prime, int& exponent) {
+  char mult, caret;
 
-  // Parse the integer on the left-hand side of the equation
-  skipSpaces(input, pos);  // Skip any spaces
-  bool negativeInteger = false;
-  if (input[pos] == '-') {
-    negativeInteger = true;
-    pos++;
-  }
+  cin >> mult;  // Read the multiplication symbol '*'
+  if (mult != '*') return false;  // Check for '*'
 
-  integer = 0;
-  while (input[pos] >= '0' && input[pos] <= '9') {
-    integer = integer * 10 + (input[pos] - '0');
-    pos++;
-  }
+  cin >> prime;  // Read the prime number
+  if (!isPrime(prime)) return false;  // Check if it's a prime number
 
-  if (negativeInteger) {
-    integer = -integer;
-  }
+  cin >> caret;  // Read the caret '^'
+  if (caret != '^') return false;  // Check for '^'
 
-  skipSpaces(input, pos);  // Skip any spaces
+  cin >> exponent;  // Read the exponent
 
-  // Skip the '=' sign
-  if (input[pos] != '=') {
-    return false;
-  }
-  pos++;
-  skipSpaces(input, pos);  // Skip spaces after '='
-
-  // Parse the sign (must be either 1 or -1)
-  bool negativeSign = false;
-  if (input[pos] == '-') {
-    negativeSign = true;
-    pos++;
-  }
-
-  if (input[pos] != '1') {
-    return false;  // Invalid sign (should be either 1 or -1)
-  }
-
-  sign = negativeSign ? -1 : 1;
-  pos++;
-
-  skipSpaces(input, pos);  // Skip spaces after '1' or '-1'
-
-  // Start parsing the prime factors and exponents
-  count = 0;
-  while (input[pos] != '?' && input[pos] != '\0' && input[pos] != '\n') {
-    if (input[pos] == '\n' || input[pos] == '\r') {
-      break;
-    }
-
-    if (input[pos] != '*') {
-      return false;  // Expected multiplication symbol
-    }
-    pos++;
-    skipSpaces(input, pos);  // Skip spaces after '*'
-
-    // Parse the prime number
-    int prime = 0;
-    while (input[pos] >= '0' && input[pos] <= '9') {
-      prime = prime * 10 + (input[pos] - '0');
-      pos++;
-    }
-
-    if (!isPrime(prime)) {
-      return false;  // Not a prime number
-    }
-
-    primes[count] = prime;
-
-    skipSpaces(input, pos);  // Skip spaces after prime number
-
-    // Parse the exponent, expect '^'
-    if (input[pos] != '^') {
-      return false;  // Expected '^'
-    }
-    pos++;
-    skipSpaces(input, pos);  // Skip spaces after '^'
-
-    int exponent = 0;
-    while (input[pos] >= '0' && input[pos] <= '9') {
-      exponent = exponent * 10 + (input[pos] - '0');
-      pos++;
-    }
-
-    exponents[count] = exponent;
-    count++;
-
-    skipSpaces(input, pos);  // Skip spaces after exponent
-  }
-
-  // Ensure the input ends with '?' and nothing else (except for possible newline)
-  if (input[pos] != '?' || (input[pos + 1] != '\0' && input[pos + 1] != '\n' && input[pos + 1] != '\r')) {
-    return false;  // Input doesn't end with '?'
-  }
-
-  return valid;
+  return true;
 }
 
-// Function to calculate the prime factorization of a number
-void factorize(int number, int primes[], int exponents[], int &count) {
-  count = 0;
-  int absNumber = (number < 0) ? -number : number;
+// Function to factorize a number one prime at a time and compare it against the input
+bool factorizeAndCompare(int number, int sign) {
+  int calculatedProduct = sign;
+  int prime, exponent;
 
-  for (int i = 2; i * i <= absNumber; ++i) {
-    if (isPrime(i)) {
-      int exponent = 0;
-      while (absNumber % i == 0) {
-        absNumber /= i;
-        exponent++;
-      }
-      if (exponent > 0) {
-        primes[count] = i;
-        exponents[count] = exponent;
-        count++;
-      }
+  while (cin.peek() != '?') {  // Continue until we encounter the '?' character
+    if (!parsePrimeExponent(prime, exponent)) {
+      return false;  // Invalid prime-exponent pair
     }
+
+    // Multiply the calculated product by prime^exponent
+    int primePower = 1;
+    for (int i = 0; i < exponent; i++) {
+      primePower *= prime;
+    }
+    calculatedProduct *= primePower;
   }
 
-  if (absNumber > 1) {
-    primes[count] = absNumber;
-    exponents[count] = 1;
-    count++;
-  }
+  return calculatedProduct == number;  // Return true if the factorized product matches the original number
 }
 
-// Helper function to manually sort primes and exponents based on the primes
-void sortPrimesAndExponents(int primes[], int exponents[], int count) {
-  for (int i = 0; i < count - 1; ++i) {
-    for (int j = i + 1; j < count; ++j) {
-      if (primes[i] > primes[j]) {
-        // Swap primes
-        int tempPrime = primes[i];
-        primes[i] = primes[j];
-        primes[j] = tempPrime;
+// Main function
+int main() {
+  int number = parseInteger();  // Read the integer on the left side of the equation
+  char equalSign;
+  cin >> equalSign;  // Read the '=' sign
 
-        // Swap corresponding exponents
-        int tempExponent = exponents[i];
-        exponents[i] = exponents[j];
-        exponents[j] = tempExponent;
-      }
-    }
+  if (equalSign != '=') {
+    cout << "Invalid input format." << endl;
+    return 0;
   }
+
+  int sign = parseInteger();  // Read the sign (1 or -1)
+  if (sign != 1 && sign != -1) {
+    cout << "Invalid input format." << endl;
+    return 0;
+  }
+
+  // Factorize and compare with the given number
+  bool correct = factorizeAndCompare(number, sign);
+  char questionMark;
+  cin >> questionMark;  // Read the '?' character
+
+  // Output the result with appropriate formatting
+  if (correct && questionMark == '?') {
+    cout << "Correct!" << endl;
+  } else {
+    cout << "Incorrect. " << number << " = " << (number < 0 ? "-1" : "1");  // Fix missing prime factorization output
+
+    // Re-read and output the prime factorization
+    int prime, exponent;
+    while (cin.peek() != '?') {  // Continue until we encounter the '?' character again
+      if (!parsePrimeExponent(prime, exponent)) {
+        break;
+      }
+
+      cout << " * " << prime << "^" << exponent;  // Print the prime-exponent pair
+    }
+
+    cout << endl;
+  }
+
+  return 0;
 }
